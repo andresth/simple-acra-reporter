@@ -1,15 +1,14 @@
 <?php
-
 $colors = array('#F0F8FF', '#F7FFBF', '#E7FFBF', '#D7FFBF', '#C7FFBF');
 
 function render_array($array, $level) {
     global $colors;
     foreach ($array as $key => $value) {
-        echo '<div style="margin-left: ' . $level * 3 . 'em; background-color: ' . $colors[$level] . ';">';
+        echo '<div class="key" style="margin-left: ' . $level * 3 . 'em; background-color: ' . $colors[$level] . ';">';
         echo '<b>' . $key . '</b>';
         echo '</div>';
         if (!is_array($value)) {
-            echo '<div style="margin-left: ' . ($level + 1) * 3 . 'em;"><pre>' . $value . '</pre></div>';
+            echo '<div class="content" style="margin-left: ' . ($level + 1) * 3 . 'em;"><pre>' . $value . '</pre></div>';
         } else {
             render_array($value, $level + 1);
         }
@@ -26,13 +25,34 @@ echo '    <title>Crash Reports</title>';
 
 echo '
 <style>
-  table, td, th { border: 1px solid black; }
-  div { padding: 0.2em; border: 1px solid grey; }
-  div > div { margin-left: 3em; }
+  div {
+       padding: 5pt;
+       margin-bottom: 1pt;
+   }
+  .key {
+       border-left: thick solid black;
+       border-bottom: thin solid black;
+   }
+   .content {
+       background-color: #fdfdfd;
+       border-bottom: thin dashed black;
+       border-left: thin dashed black;
+       margin-bottom: 6pt;
+   }
+   h1 {
+       border-left: thick solid black;
+       border-bottom: thin solid black;
+       padding: 5pt;
+   }
+   h2 {
+       border-left: thick solid black;
+       border-bottom: thin solid black;
+       padding: 5pt;
+       margin-left: 1em;
+   }
 </style>';
 
 echo '  </head>';
-
 echo '  <body>';
 
 $dir = isset($_GET['dir']) ? $_GET['dir'] : '';
@@ -40,24 +60,23 @@ $file = isset($_GET['file']) ? $_GET['file'] : '';
 
 if ($dir == "" && $file == "") {
     echo '    <h1>Apps</h1>';
-    if ($handle = opendir('./reports/')) {
-        echo '    <ul>';
-        /* Das ist der korrekte Weg, ein Verzeichnis zu durchlaufen. */
+    if ($handle = opendir('./reports')) {
+        // echo '    <ul>';
         while (false !== ($entry = readdir($handle))) {
             if ($entry == '.' || $entry == '..') {
                 continue;
             }
-            if (is_dir($entry)) {
-                echo '      <li>' . '<a href="index.php?dir=' . $entry . '">' . $entry . '</a>' . '</li>';
+            if (is_dir('./reports/' . $entry)) {
+                echo '<div class="key" style="background-color: ' . $colors[0] . ';">' . '<a href="index.php?dir=' . $entry . '">' . $entry . '</a>' . '</div>';
             }
         }
         closedir($handle);
-        echo '    </ul>';
+        // echo '    </ul>';
     }
 } elseif ($dir != "") {
     if ($file == "") {
         $dirFiles = array();
-        echo '    <h1>Crash Reports</h1>';
+        echo '<h1>Crash Reports for ' . $dir . '</h1>';
         if ($handle = opendir('./reports/' . $dir)) {
             while (false !== ($entry = readdir($handle))) {
                 // if ($entry == '.' || $entry == '..') {
@@ -69,39 +88,21 @@ if ($dir == "" && $file == "") {
             }
             closedir($handle);
             sort($dirFiles);
-            echo '    <ul>';
+            // echo '    <ul>';
             foreach ($dirFiles as $value) {
-                echo '      <li>' . '<a href="index.php?dir=' . $dir . '&file=' . urlencode($value) . '">' . $value . '</a>' . '</li>';
+                echo '<div class="key" style="background-color: ' . $colors[1] . ';">' . '<a href="index.php?dir=' . $dir . '&file=' . urlencode($value) . '">' . $value . '</a>' . '</div>';
             }
-            echo '    </ul>';
+            // echo '    </ul>';
         }
     } else {
         $json = json_decode(file_get_contents('./reports/' . $dir . '/' . $file), true);
         // $jsonIterator = new RecursiveIteratorIterator(new RecursiveArrayIterator($json), RecursiveIteratorIterator::SELF_FIRST);
         echo '<h1>' . $file . '</h1>';
+        echo '<h2>' . $dir . '</h2>';
         render_array($json, 0);
-        // echo '<table>';
-        // foreach ($json as $key => $value) { // This will search in the 2 jsons
-        //     echo '<tr>';
-        //     echo '<td>' . $key . '</td>';
-        //     if (!is_array($value)) {
-        //         echo '<td colspan=2><pre><code>' . $value . '</code></pre></td>';
-        //     } else {
-        //         echo '</tr>';
-        //         foreach ($value as $key2 => $value2) {
-        //             echo '<tr>';
-        //             echo '<td></td>';
-        //             echo '<td>' . $key2 . '</td>';
-        //             echo '<td>' .$value2 . '</td>';
-        //             echo '</tr>';
-        //         }
-        //     }
-        // }
-        // echo '</table>';
     }
 }
 
 echo '  </body>';
-
 echo '</html>';
 ?>
