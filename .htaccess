@@ -1,0 +1,10 @@
+AuthType Basic
+AuthName "Authentication Required"
+AuthUserFile "/var/www/virtual/lysip/apps/uber/crashreport/.htpasswd"
+Require valid-user
+
+<Files report.php>
+order allow,deny
+allow from all
+satisfy any
+</Files>
